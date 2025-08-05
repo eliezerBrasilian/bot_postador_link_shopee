@@ -64,16 +64,9 @@ class ExecutorDeComandos:
         user_id = update.effective_user.id
         user_state.awaiting_nome[user_id] = True
         await responder_usuario(update, "Cole a informação da Shopee que contém nome, preço e link:")
-        
-                    
-    async def auto_aliexpress(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        user_id = update.effective_user.id
-        user_state.awaiting_nome[user_id] = True
-        await responder_usuario(update, "Cole a informação do Aliexpress que contém nome, preço e link:")
-
 
     async def imagem(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await responder_usuario(update, "Envie as imagens agora. Quando terminar, use /gerar_post para criar o post.")
+        await responder_usuario(update, "Envie a imagem que você deseja usar em seu post.")
         
     async def receber_imagem(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = update.effective_user.id
@@ -131,8 +124,8 @@ async def enviar_post_para_canal_telegram(update, bot, caminho_imagem,legenda, l
             )
         await responder_usuario(
                 update,
-                f"✅ Imagem enviada com sucesso para o canal.",
+                f"✅ Post enviado com sucesso para o canal/grupo.",
                 reply_markup=menu_com_apenas_um_botao_retornar_ao_menu
             )
     except Exception as e:
-        print(f"❌ Erro ao enviar imagem para o canal: {e}")
+        print(f"❌ Erro ao enviar post para o canal/grupo: {e}")

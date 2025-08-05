@@ -5,7 +5,7 @@ import asyncio
 import os
 
 from classes.commands_comprovantes import enviar_comprovante, receber_comprovante
-from classes.commands_telegram import definir_produto, gerar_video, linkar_produto, nome, receber_video, toggle_instagram, tratar_mensagem_texto
+from classes.commands_telegram import tratar_mensagem_texto
 from classes.executores.executor_de_comandos import ExecutorDeComandos
 from utils.callback_data_handler import callback_menu
 
@@ -20,19 +20,14 @@ class Configurador:
         #waiting_comprovante = true
         app.add_handler(MessageHandler(filters.Document.ALL, receber_comprovante))
         
-        app.add_handler(CommandHandler("produto", definir_produto))
-        app.add_handler(CommandHandler("link", linkar_produto))
-        app.add_handler(CommandHandler("gerar", gerar_video))
         app.add_handler(MessageHandler(filters.PHOTO, self.executor.receber_imagem))
         
-        app.add_handler(MessageHandler(filters.VIDEO, receber_video))
         app.add_handler(CallbackQueryHandler(callback_menu))
         app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, tratar_mensagem_texto))
         app.add_handler(CommandHandler("auto_shopee", self.executor.auto_shopee))
-        app.add_handler(CommandHandler("auto_aliexpress", self.executor.auto_aliexpress))
-        app.add_handler(CommandHandler("nome", nome))
+       
         app.add_handler(CommandHandler("imagem", self.executor.imagem))
-        app.add_handler(CommandHandler("toggle_instagram", toggle_instagram))
+      
         app.add_handler(CommandHandler("gerar_post", self.executor.gerar_post))
 
     def iniciar(self):

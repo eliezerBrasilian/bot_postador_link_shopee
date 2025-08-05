@@ -1,7 +1,6 @@
 import re
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
-
 def gerar_botao_com_link_e_botao_retornar_ao_menu(link_produto:str, texto:str):
     botao = InlineKeyboardMarkup([
              [
