@@ -5,7 +5,7 @@ import asyncio
 import os
 
 from classes.commands_comprovantes import enviar_comprovante, receber_comprovante
-from classes.commands_telegram import tratar_mensagem_texto
+from utils.commands_telegram import tratar_mensagem_texto
 from classes.executores.executor_de_comandos import ExecutorDeComandos
 from utils.callback_data_handler import callback_menu
 

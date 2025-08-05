@@ -5,9 +5,6 @@ from classes.user_state import user_state
 from outros import extrair_info_shopee
 from menus.menus import menu_apos_auto_shopee
 
-start_logo = "C:\\Users\\Eliezer\\Documents\\DEV\\PYTHON\\cospe_video\\assets\\images\\start_logo.png"
-
-
 async def tratar_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     texto = update.message.text.strip()
@@ -43,7 +40,7 @@ async def extrair_informacoes_de_texto_shopee_opcao_1(update: Update, context: C
     link = link_match.group(1).strip() if link_match else None
 
     if nome and link:
-        user_state.produtos[user_id] = f"🔥{nome} - {preco or ''}"
+        user_state.produtos[user_id] = f"🔥{nome} - R$ {preco or ''}"
         user_state.links[user_id] = link
         await responder_usuario(update,
             f"✅ Produto preenchido automaticamente:\n\n<b>Nome:</b> {nome}\n<b>Preço:</b> {preco or 'Não encontrado'}\n<b>Link:</b> {link}",
@@ -60,7 +57,7 @@ async def extrair_informacoes_de_texto_shopee_opcao_1(update: Update, context: C
 async def extrair_informacoes_de_texto_shopee_opcao_2(update: Update, context: ContextTypes.DEFAULT_TYPE, texto:str, user_id: int):
     nome, preco, link = extrair_info_shopee(texto)
     if nome and link:
-        user_state.produtos[user_id] = f"🔥{nome} - {preco}"
+        user_state.produtos[user_id] = f"🔥{nome} - R$ {preco}"
         user_state.links[user_id] = link
         await responder_usuario(update,
                 f"✅ Produto preenchido automaticamente:\n\n<b>Nome:</b> {nome}\n<b>Preço:</b> {preco}\n<b>Link:</b> {link}",
