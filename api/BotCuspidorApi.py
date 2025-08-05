@@ -18,7 +18,7 @@ class BotCuspidorAPI:
             print(f"Erro ao consultar API: {e}")
             return False    
 
-    async def is_premium(self, user_id: str) -> bool:
+    async def is_premium(self, user_id: int) -> bool:
         url = f"{self.base_url}/user/is-premium/{user_id}"
         try:
             response = requests.get(url, timeout=5)
@@ -36,9 +36,9 @@ class BotCuspidorAPI:
         url = f"{self.base_url}/telegram-channel"
         
         payload = {
-        "user_id": user_id,
+        "user_id_telegram": str(user_id),
         "name": canal,
-        "username": f"@{canal.replace(' ', '_')}"
+        "username": canal
         }
         
         try:
@@ -52,3 +52,22 @@ class BotCuspidorAPI:
         except requests.RequestException as e:
             print(f"Erro ao consultar API: {e}")
             return False   
+    
+    async def listar_canais(self, user_id: int) -> list[dict]:
+        url = f"{self.base_url}/user/telegram-channels/{user_id}"
+
+        try:
+            response = requests.get(url, timeout=5)
+            if response.status_code == 404:
+                # Usuário não encontrado -> não premium
+                return []
+
+            response.raise_for_status()
+            data = response.json()
+
+            # Retorna apenas a lista de canais
+            return data.get("list", [])
+
+        except requests.RequestException as e:
+            print(f"Erro ao consultar API: {e}")
+            return []

@@ -9,7 +9,6 @@ from utils.commands_telegram import tratar_mensagem_texto
 from classes.executores.executor_de_comandos import ExecutorDeComandos
 from utils.callback_data_handler import callback_menu
 from dotenv import load_dotenv
-import os
 
 class Configurador:
 
@@ -37,6 +36,7 @@ class Configurador:
     def iniciar(self):
         load_dotenv()
         bot_token = os.getenv('BOT_TOKEN')
+
         if not bot_token:
             raise ValueError("BOT_TOKEN não definido")
 

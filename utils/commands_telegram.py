@@ -4,7 +4,7 @@ from api.BotCuspidorApi import BotCuspidorAPI
 from utils.resposta_utils import responder_usuario
 from classes.user_state import user_state 
 from outros import extrair_info_shopee
-from menus.menus import menu_apos_auto_shopee, menu_com_apenas_um_botao_retornar_ao_menu
+from menus.menus import menu_apos_auto_shopee, menu_com_apenas_um_botao_retornar_ao_menu, menu_home
 
 async def tratar_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -22,6 +22,12 @@ async def tratar_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_TY
             f"✅ Canal/Grupo adicionado com sucesso",
             reply_markup=menu_com_apenas_um_botao_retornar_ao_menu,
             parse_mode="HTML")
+            return
+        else:
+            await responder_usuario(update,
+                f"Erro ao aicionar canal/grupo... tente de novo",
+                reply_markup=menu_com_apenas_um_botao_retornar_ao_menu,
+                parse_mode="HTML")
             return
 
     if user_state.awaiting_nome.get(user_id):
@@ -54,7 +60,7 @@ async def extrair_informacoes_de_texto_shopee_opcao_1(update: Update, context: C
 
     if nome and link:
         user_state.produtos[user_id] = f"🔥{nome} - R$ {preco or ''}"
-        user_state.links[user_id] = link
+        user_state.link[user_id] = link
         await responder_usuario(update,
             f"✅ Produto preenchido automaticamente:\n\n<b>Nome:</b> {nome}\n<b>Preço:</b> {preco or 'Não encontrado'}\n<b>Link:</b> {link}",
             reply_markup=menu_apos_auto_shopee,
@@ -69,7 +75,7 @@ async def extrair_informacoes_de_texto_shopee_opcao_2(update: Update, context: C
     nome, preco, link = extrair_info_shopee(texto)
     if nome and link:
         user_state.produtos[user_id] = f"🔥{nome} - R$ {preco}"
-        user_state.links[user_id] = link
+        user_state.link[user_id] = link
         await responder_usuario(update,
                 f"✅ Produto preenchido automaticamente:\n\n<b>Nome:</b> {nome}\n<b>Preço:</b> {preco}\n<b>Link:</b> {link}",
                 reply_markup=menu_apos_auto_shopee,
@@ -96,7 +102,8 @@ async def detectar_ativacao_conta_premium(update: Update, context: ContextTypes.
                 chat_id=int(chat_id_msg),
                 text="Sua conta premium vitalícia foi ativada"
                     if status_msg == "201" 
-                    else "Infelizmente seu acesso Premium vitalício não foi ativado :("
+                    else "Infelizmente seu acesso Premium vitalício não foi ativado :(",
+                    reply_markup=menu_home
             )
 
         return
