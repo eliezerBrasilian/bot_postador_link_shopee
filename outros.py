@@ -1,17 +1,5 @@
 import re
-
-from classes.user_state import user_state
-
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from utils.resposta_utils import responder_usuario
-
-async def mostrar_botao_gerar(update: Update):
-    user_id = update.effective_user.id
-    if pode_gerar_video(user_id):
-        teclado = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🎬 Gerar Vídeo", callback_data="gerar_video")]
-        ])
-        await responder_usuario(update,"Tudo pronto! Clique no botão abaixo para gerar o vídeo:", reply_markup=teclado)
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 def gerar_botao_com_link_e_botao_retornar_ao_menu(link_produto:str, texto:str):
@@ -31,12 +19,6 @@ def gerar_botao_com_link(link_produto:str, texto:str):
     ])
     return botao
 
-def pode_gerar_video(user_id: int) -> bool:
-    return (
-        user_state.produtos.get(user_id) and
-        user_state.links.get(user_id) and
-        user_state.imagens.get(user_id)  # lista com pelo menos uma imagem
-    )
 
 def extrair_info_shopee(texto: str):
     nome_match = re.search(r'Dê uma olhada em (.*?) por R\$', texto)
@@ -94,42 +76,3 @@ def obtem_tags_a_partir_do_produto(nome_produto: str):
         tag_final = tags_default
 
     return tag_final
-
-def obtem_bio(nome_produto:str, alvo = "instagram"):
-    tags = obtem_tags_a_partir_do_produto(nome_produto)
-    
-    if alvo == "instagram":
-        return f"{nome_produto.upper()}\n 🛒✨😍 Peça já seu link shopee nos comentários\n{tags}"
-    
-    return f"{nome_produto.upper()}\n 🛒✨😍 Segue a gente no Instagram: @ofertanteoficial"
-
-
-def obtemTextoQuebrado(nome:str):
-
-    nome_array = nome.split(" ")
-    print(nome_array)
-
-    first_string = ""
-    second_string = ""
-    limit_max = 20
-
-    for palavra in nome_array:
-        if first_string == "":
-            first_string = palavra 
-        elif len(first_string + " " + palavra) < limit_max:
-            first_string =  first_string + " " + palavra
-        
-        else:
-            if second_string == "":
-                second_string = palavra 
-            else:
-                second_string =  second_string + " " + palavra 
-
-    print(first_string)
-    print("size: " + str(len(first_string)))
-    print(second_string)
-    
-    return {
-        "primeiro_nome": first_string,
-        "continuacao": second_string
-    }
