@@ -46,8 +46,6 @@ async def extrair_informacoes_de_texto_shopee_opcao_1(update: Update, context: C
             f"✅ Produto preenchido automaticamente:\n\n<b>Nome:</b> {nome}\n<b>Preço:</b> {preco or 'Não encontrado'}\n<b>Link:</b> {link}",
             reply_markup=menu_apos_auto_shopee,
             parse_mode="HTML")
-        #mostrar_botao_gerar_video
-        #await mostrar_botao_gerar(update)
         
         return
     else:
