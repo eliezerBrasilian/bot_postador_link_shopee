@@ -17,6 +17,9 @@ async def callback_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "auto_shopee":
         await executor.auto_shopee(update, context)
         
+    elif query.data == "add_canal_telegram":
+        await executor.add_canal_telegram(update, context)
+        
     elif query.data == "start":
         await executor.start(update, context)
         

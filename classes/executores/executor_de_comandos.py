@@ -64,6 +64,11 @@ class ExecutorDeComandos:
         user_id = update.effective_user.id
         user_state.awaiting_nome[user_id] = True
         await responder_usuario(update, "Cole a informação da Shopee que contém nome, preço e link:")
+        
+    async def add_canal_telegram(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        user_id = update.effective_user.id
+        user_state.awaiting_nome[user_id] = True
+        await responder_usuario(update, "Adicione seu grupo ou canal aqui por exemplo: @teste")   
 
     async def imagem(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await responder_usuario(update, "Envie a imagem que você deseja usar em seu post.")

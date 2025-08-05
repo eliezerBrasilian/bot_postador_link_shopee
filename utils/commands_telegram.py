@@ -1,15 +1,28 @@
 from telegram import Update
 from telegram.ext import ContextTypes
+from api.BotCuspidorApi import BotCuspidorAPI
 from utils.resposta_utils import responder_usuario
 from classes.user_state import user_state 
 from outros import extrair_info_shopee
-from menus.menus import menu_apos_auto_shopee
+from menus.menus import menu_apos_auto_shopee, menu_com_apenas_um_botao_retornar_ao_menu
 
 async def tratar_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     texto = update.message.text.strip()
          
     await detectar_ativacao_conta_premium(update, context, texto)
+
+    # usuario entrou com nome de canal ou grupo
+    if texto.startswith("@"):
+        api = BotCuspidorAPI()
+        adicionou_canal = await api.adicionar_canal(texto, user_id)
+        
+        if adicionou_canal:
+            await responder_usuario(update,
+            f"✅ Canal/Grupo adicionado com sucesso",
+            reply_markup=menu_com_apenas_um_botao_retornar_ao_menu,
+            parse_mode="HTML")
+            return
 
     if user_state.awaiting_nome.get(user_id):
         user_state.awaiting_nome[user_id] = False

@@ -19,7 +19,7 @@ menu_home = InlineKeyboardMarkup([
                     InlineKeyboardButton("Publicar/Gerar Posts", callback_data="gerar_post")
                 ],
                 [
-                    InlineKeyboardButton("Add/Editar Canal do Telegram", callback_data="add_canal_grupo_telegram")
+                    InlineKeyboardButton("Add/Editar Canal do Telegram", callback_data="add_canal_telegram")
                 ]
             ])
 

@@ -27,6 +27,8 @@ class Configurador:
         app.add_handler(CallbackQueryHandler(callback_menu))
         app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, tratar_mensagem_texto))
         app.add_handler(CommandHandler("auto_shopee", self.executor.auto_shopee))
+        
+        app.add_handler(CommandHandler("add_canal_telegram", self.executor.add_canal_telegram))
        
         app.add_handler(CommandHandler("imagem", self.executor.imagem))
       

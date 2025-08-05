@@ -31,3 +31,24 @@ class BotCuspidorAPI:
         except requests.RequestException as e:
             print(f"Erro ao consultar API: {e}")
             return False
+        
+    async def adicionar_canal(self, canal:str, user_id: int) -> bool:
+        url = f"{self.base_url}/telegram-channel"
+        
+        payload = {
+        "user_id": user_id,
+        "name": canal,
+        "username": f"@{canal.replace(' ', '_')}"
+        }
+        
+        try:
+            response = requests.post(url, json=payload, timeout=5)
+            if response.status_code == 404:
+                # Usuário não encontrado -> não premium
+                return False
+            response.raise_for_status()
+           
+            return response.status_code == 201
+        except requests.RequestException as e:
+            print(f"Erro ao consultar API: {e}")
+            return False   
