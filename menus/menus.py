@@ -16,9 +16,6 @@ menu_home = InlineKeyboardMarkup([
                     InlineKeyboardButton("Auto Shopee", callback_data="auto_shopee")
                 ],
                 [
-                    InlineKeyboardButton("Auto Aliexpress", callback_data="auto_aliexpress")
-                ],
-                [
                     InlineKeyboardButton("Publicar/Gerar Posts", callback_data="gerar_post")
                 ],
                 [
