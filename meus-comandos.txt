@@ -1,0 +1,6 @@
+.\.venv\Scripts\Activate.ps1 
+
+python test_isolado.py
+
+ModuleNotFoundError: No module named 'moviepy.editor'
+pip install moviepy==1.0.3
