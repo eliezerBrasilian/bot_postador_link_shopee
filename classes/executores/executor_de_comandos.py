@@ -5,6 +5,7 @@ from telegram import InputFile, Update
 from telegram.ext import ContextTypes
 
 from api.BotCuspidorApi import BotCuspidorAPI
+from classes.commands_comprovantes import receber_comprovante
 from outros import gerar_botao_com_link
 from utils.resposta_utils import enviar_foto_ao_usuario, responder_usuario
 from menus.menus import menu_start,menu_home
@@ -12,7 +13,10 @@ from menus.menus import menu_start,menu_home
 from classes.user_state import user_state 
 from menus.menus import menu_com_apenas_um_botao_retornar_ao_menu
 
-start_logo = "C:\\Users\\Eliezer\\Documents\\DEV\\PYTHON\\bot_postador_link_shopee\\assets\\images\\start_logo.png"
+#aqui estou dentro de /app
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+start_logo = os.path.join(BASE_DIR, "assets", "images", "start_logo.png")
 
 class ExecutorDeComandos:
 
@@ -88,6 +92,9 @@ class ExecutorDeComandos:
 
         if user_state.awaiting_comprovante.get(user_id):
              await responder_usuario(update, "✅ Comprovante recebido, aguarde um momento para liberação do seu acesso vitalício premium!")
+             
+             #processar comprovante
+             await receber_comprovante(update,context)
              return
          
         await responder_usuario(update, "✅ Imagem recebida!",       reply_markup=menu_com_apenas_um_botao_retornar_ao_menu)
