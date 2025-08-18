@@ -12,7 +12,8 @@ class DataHashDto:
     awaitingCanalTelegram: int
 
 class CacheServiceApi:
-    def __init__(self, base_url = "http://cache-service-api:7012/cache-redis/api"):
+    #def __init__(self, base_url = "http://cache-service-api:7012/cache-redis/api"):
+    def __init__(self, base_url = "http://localhost:7012/cache-redis/api"):
         self.base_url = base_url
         
     async def updateData(self, dto: DataHashDto) -> bool:

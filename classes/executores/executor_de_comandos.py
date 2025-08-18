@@ -150,29 +150,81 @@ class ExecutorDeComandos:
             except Exception as e:
                 print(f"Erro ao deletar imagem temporária: {e}")
 
-async def enviar_post_para_canal_telegram(update, bot, caminho_imagem,legenda, link_produto, user_id:int):
+from telegram import InputFile, Chat, ChatMember
+from telegram.constants import ParseMode
+
+async def enviar_post_para_canal_telegram(update, bot, caminho_imagem, legenda, link_produto, user_id: int):
     canais = user_state.get_canais(user_id)
     
     for canal in canais:
         username = canal.get("username")
+
+        # Verifica se o bot é administrador do canal
+        try:
+            chat_member = await bot.get_chat_member(chat_id=username, user_id=(await bot.get_me()).id)
+            if chat_member.status not in [ChatMember.ADMINISTRATOR, ChatMember.OWNER]:
+                await responder_usuario(
+                    update,
+                    f"❌ Não sou administrador do canal {username}. Não consigo criar post com comentários.",
+                    reply_markup=menu_com_apenas_um_botao_retornar_ao_menu
+                )
+                continue
+        except Exception as e:
+            await responder_usuario(
+                update,
+                f"❌ Erro ao verificar permissões no canal {username}: {e}",
+                reply_markup=menu_com_apenas_um_botao_retornar_ao_menu
+            )
+            continue
+
+        # Envia a foto para o canal
         try:
             with open(caminho_imagem, "rb") as img_file:
                 await bot.send_photo(
                     chat_id=username,
                     photo=InputFile(img_file),
                     caption=legenda,
-                    parse_mode="HTML",
+                    parse_mode=ParseMode.HTML,
                     reply_markup=gerar_botao_com_link(link_produto, "Pegar minha oferta🤳🏻✨🙀🥳")
                 )
+
             await responder_usuario(
-                    update,
-                    f"✅ Post enviado com sucesso para o canal/grupo.",
-                    reply_markup=menu_com_apenas_um_botao_retornar_ao_menu
-                )
+                update,
+                f"✅ Post enviado com sucesso para o canal/grupo {username}.",
+                reply_markup=menu_com_apenas_um_botao_retornar_ao_menu
+            )
+
         except Exception as e:
             await responder_usuario(
-                    update,
-                    f"❌ Erro ao enviar post para o canal/grupo: {e}",
-                    reply_markup=menu_com_apenas_um_botao_retornar_ao_menu
-                )
+                update,
+                f"❌ Erro ao enviar post para o canal/grupo {username}: {e}",
+                reply_markup=menu_com_apenas_um_botao_retornar_ao_menu
+            )
+
+
+# async def enviar_post_para_canal_telegram(update, bot, caminho_imagem,legenda, link_produto, user_id:int):
+#     canais = user_state.get_canais(user_id)
+    
+#     for canal in canais:
+#         username = canal.get("username")
+#         try:
+#             with open(caminho_imagem, "rb") as img_file:
+#                 await bot.send_photo(
+#                     chat_id=username,
+#                     photo=InputFile(img_file),
+#                     caption=legenda,
+#                     parse_mode="HTML",
+#                     reply_markup=gerar_botao_com_link(link_produto, "Pegar minha oferta🤳🏻✨🙀🥳")
+#                 )
+#             await responder_usuario(
+#                     update,
+#                     f"✅ Post enviado com sucesso para o canal/grupo.",
+#                     reply_markup=menu_com_apenas_um_botao_retornar_ao_menu
+#                 )
+#         except Exception as e:
+#             await responder_usuario(
+#                     update,
+#                     f"❌ Erro ao enviar post para o canal/grupo: {e}",
+#                     reply_markup=menu_com_apenas_um_botao_retornar_ao_menu
+#                 )
             
