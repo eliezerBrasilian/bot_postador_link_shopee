@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from api.BotCuspidorApi import BotCuspidorAPI
+from api.CacheServiceApi import CacheServiceApi
 from utils.resposta_utils import responder_usuario
 from classes.user_state import user_state 
 from outros import extrair_info_shopee
@@ -30,16 +31,21 @@ async def tratar_mensagem_texto(update: Update, context: ContextTypes.DEFAULT_TY
                 parse_mode="HTML")
             return
 
-    if user_state.awaiting_nome.get(user_id):
-        user_state.awaiting_nome[user_id] = False
+    cacheServiceApi = CacheServiceApi()
+    data = await cacheServiceApi.retrieveDataByUserId(user_id)
+    
+    if data != None:
 
-    # Verifica se é um texto Shopee do tipo 1 (do exemplo dado)
-    if "Confira" in texto and "Shopee" in texto and "Somente R$" in texto:
-        await extrair_informacoes_de_texto_shopee_opcao_1(update, context, texto, user_id)
+        if data.awaitingTituloProduto == 1:
+            data.awaitingTituloProduto = 0
+            await cacheServiceApi.updateData(data)
+        # Verifica se é um texto Shopee do tipo 1 (do exemplo dado)
+        if "Confira" in texto and "Shopee" in texto and "Somente R$" in texto:
+            await extrair_informacoes_de_texto_shopee_opcao_1(update, context, texto, user_id)
 
-    # Verifica se é do tipo 2
-    elif "Dê uma olhada em" in texto and "por R$" in texto:
-        await extrair_informacoes_de_texto_shopee_opcao_2(update, context, texto, user_id)
+        # Verifica se é do tipo 2
+        elif "Dê uma olhada em" in texto and "por R$" in texto:
+            await extrair_informacoes_de_texto_shopee_opcao_2(update, context, texto, user_id)
 
 
 async def extrair_informacoes_de_texto_shopee_opcao_1(update: Update, context: ContextTypes.DEFAULT_TYPE, texto: str, user_id: int):
@@ -59,14 +65,21 @@ async def extrair_informacoes_de_texto_shopee_opcao_1(update: Update, context: C
     link = link_match.group(1).strip() if link_match else None
 
     if nome and link:
-        user_state.produtos[user_id] = f"🔥{nome} - R$ {preco or ''}"
-        user_state.link[user_id] = link
-        await responder_usuario(update,
-            f"✅ Produto preenchido automaticamente:\n\n<b>Nome:</b> {nome}\n<b>Preço:</b> {preco or 'Não encontrado'}\n<b>Link:</b> {link}",
-            reply_markup=menu_apos_auto_shopee,
-            parse_mode="HTML")
+        cache_api = CacheServiceApi()
+        data = await cache_api.retrieveDataByUserId(user_id)
         
-        return
+        if data != None:
+            data.tituloProduto = f"🔥{nome} - R$ {preco}"
+            data.linkProduto = link
+            
+            await cache_api.updateData(data)
+        
+            await responder_usuario(update,
+                f"✅ Produto preenchido automaticamente:\n\n<b>Nome:</b> {nome}\n<b>Preço:</b> {preco or 'Não encontrado'}\n<b>Link:</b> {link}",
+                reply_markup=menu_apos_auto_shopee,
+                parse_mode="HTML")
+            
+            return
     else:
         await responder_usuario(update, "❌ Não consegui extrair as informações corretamente.")
 
@@ -74,13 +87,20 @@ async def extrair_informacoes_de_texto_shopee_opcao_1(update: Update, context: C
 async def extrair_informacoes_de_texto_shopee_opcao_2(update: Update, context: ContextTypes.DEFAULT_TYPE, texto:str, user_id: int):
     nome, preco, link = extrair_info_shopee(texto)
     if nome and link:
-        user_state.produtos[user_id] = f"🔥{nome} - R$ {preco}"
-        user_state.link[user_id] = link
-        await responder_usuario(update,
-                f"✅ Produto preenchido automaticamente:\n\n<b>Nome:</b> {nome}\n<b>Preço:</b> {preco}\n<b>Link:</b> {link}",
-                reply_markup=menu_apos_auto_shopee,
-                parse_mode="HTML")
-        return
+        cache_api = CacheServiceApi()
+        data = await cache_api.retrieveDataByUserId(user_id)
+        
+        if data != None:
+            data.tituloProduto = f"🔥{nome} - {preco}"
+            data.linkProduto = link
+            
+            await cache_api.updateData(data)
+   
+            await responder_usuario(update,
+                    f"✅ Produto preenchido automaticamente:\n\n<b>Nome:</b> {nome}\n<b>Preço:</b> {preco}\n<b>Link:</b> {link}",
+                    reply_markup=menu_apos_auto_shopee,
+                    parse_mode="HTML")
+            return
     else:
         await responder_usuario(update, "❌ Não consegui extrair as informações corretamente.")
 

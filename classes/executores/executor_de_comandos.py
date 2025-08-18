@@ -5,13 +5,13 @@ from telegram import InputFile, Update
 from telegram.ext import ContextTypes
 
 from api.BotCuspidorApi import BotCuspidorAPI
+from api.CacheServiceApi import CacheServiceApi
 from classes.commands_comprovantes import receber_comprovante
 from outros import gerar_botao_com_link
 from utils.resposta_utils import enviar_foto_ao_usuario, responder_usuario
-from menus.menus import menu_start,menu_home
 
 from classes.user_state import user_state 
-from menus.menus import menu_com_apenas_um_botao_retornar_ao_menu
+from menus.menus import menu_com_apenas_um_botao_retornar_ao_menu, menu_start,menu_home
 
 #aqui estou dentro de /app
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -70,13 +70,25 @@ class ExecutorDeComandos:
             
     async def auto_shopee(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = update.effective_user.id
-        user_state.awaiting_nome[user_id] = True
-        await responder_usuario(update, "Cole a informação da Shopee que contém nome, preço e link:")
+        api = CacheServiceApi()
+        
+        dto = await api.retrieveDataByUserId(user_id)
+        if dto != None:
+            dto.awaitingTituloProduto = 1
+            await api.updateData(dto)
+            await responder_usuario(update, "Cole a descrição da Shopee")
+        
         
     async def add_canal_telegram(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = update.effective_user.id
-        user_state.awaiting_nome[user_id] = True
-        await responder_usuario(update, "Adicione seu grupo ou canal aqui por exemplo: @teste")   
+        api = CacheServiceApi()
+        
+        dto = await api.retrieveDataByUserId(user_id)
+        if dto != None:
+            dto.awaitingCanalTelegram = 1
+            await api.updateData(dto)
+            await responder_usuario(update, "Adicione seu grupo ou canal aqui por exemplo: @teste")   
+
 
     async def imagem(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await responder_usuario(update, "Envie a imagem que você deseja usar em seu post.")
@@ -89,45 +101,54 @@ class ExecutorDeComandos:
         byte_data = await file.download_as_bytearray()
 
         user_state.imagem[user_id] = bytes(byte_data)
-
-        if user_state.awaiting_comprovante.get(user_id):
-             await responder_usuario(update, "✅ Comprovante recebido, aguarde um momento para liberação do seu acesso vitalício premium!")
-             
-             #processar comprovante
-             await receber_comprovante(update,context)
-             return
-         
-        await responder_usuario(update, "✅ Imagem recebida!",       reply_markup=menu_com_apenas_um_botao_retornar_ao_menu)
+        
+        api = CacheServiceApi()
+        
+        dto = await api.retrieveDataByUserId(user_id)
+        if dto != None:
+            if dto.awaitingComprovante == 1:
+                await responder_usuario(update, "✅ Comprovante recebido, aguarde um momento para liberação do seu acesso vitalício premium!")
+                
+                #processar comprovante
+                await receber_comprovante(update,context)
+                return
+            
+            await responder_usuario(update, "✅ Imagem recebida!",       reply_markup=menu_com_apenas_um_botao_retornar_ao_menu)
 
     async def gerar_post(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = update.effective_user.id
-        nome_produto = user_state.produtos.get(user_id, "")
-        link_produto = user_state.link.get(user_id, "")
-        imagem = user_state.imagem.get(user_id, b"")
-
-        if not nome_produto or not link_produto:
-            await responder_usuario(update, "❌ Antes de gerar o post, envie o nome e o link do produto.")
-            return
-
-        if len(imagem) == 0:
-            await responder_usuario(update, "❌ Para gerar o post, você precisa escolher uma imagem.")
-            return
-
-        legenda = (
-            f"<b>{nome_produto}</b>\n\n"
-            f"<a href=\"{link_produto}\">Pegar minha oferta 😊❤️😄👌</a>"
-        )
-
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_img:
-            temp_img.write(imagem)
-            temp_img_path = temp_img.name
         
-        await enviar_post_para_canal_telegram(update, context.bot, temp_img_path, legenda, link_produto, user_id)
+        api = CacheServiceApi()
+        data = await api.retrieveDataByUserId(user_id)
+        if data != None:
+           
+            nome_produto = data.tituloProduto
+            link_produto = data.linkProduto
+            imagem = user_state.imagem.get(user_id, b"")
+
+            if not nome_produto or not link_produto:
+                await responder_usuario(update, "❌ Antes de gerar o post, envie o nome e o link do produto.")
+                return
+
+            if len(imagem) == 0:
+                await responder_usuario(update, "❌ Para gerar o post, você precisa escolher uma imagem.")
+                return
+
+            legenda = (
+                f"<b>{nome_produto}</b>\n\n"
+                f"<a href=\"{link_produto}\">Pegar minha oferta 😊❤️😄👌</a>"
+            )
+
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_img:
+                temp_img.write(imagem)
+                temp_img_path = temp_img.name
+        
+            await enviar_post_para_canal_telegram(update, context.bot, temp_img_path, legenda, link_produto, user_id)
        
-        try:
-            os.remove(temp_img_path)
-        except Exception as e:
-            print(f"Erro ao deletar imagem temporária: {e}")
+            try:
+                os.remove(temp_img_path)
+            except Exception as e:
+                print(f"Erro ao deletar imagem temporária: {e}")
 
 async def enviar_post_para_canal_telegram(update, bot, caminho_imagem,legenda, link_produto, user_id:int):
     canais = user_state.get_canais(user_id)

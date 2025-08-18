@@ -1,12 +1,17 @@
 from telegram import Update
 from telegram.ext import ContextTypes
-from classes.user_state import user_state
 from utils.file_utils import salvar_arquivo
 from utils.resposta_utils import responder_mensagem_acionada_via_query
+from api.CacheServiceApi import CacheServiceApi
 
 async def enviar_comprovante(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    user_state.awaiting_comprovante[user_id] = True
+    api = CacheServiceApi()
+    dto = await api.retrieveDataByUserId(user_id)
+    
+    if dto != None:
+        dto.awaitingComprovante = 1
+        await api.updateData(dto=dto)
     
     await responder_mensagem_acionada_via_query(update, context, "Envie seu comprovante agora (imagem ou PDF).")
     
@@ -14,21 +19,23 @@ async def enviar_comprovante(update: Update, context: ContextTypes.DEFAULT_TYPE)
 async def receber_comprovante(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
-    if not user_state.awaiting_comprovante.get(user_id, False):
-        return  # ignora a mensagem
-   
-    # processa arquivo
-    if update.message.document:
-        file = update.message.document
-        await enviar_para_canal_privado(update,context, file)
-    elif update.message.photo:
-        photo = update.message.photo[-1]
-        await enviar_para_canal_privado(update,context, photo)  
-    else:
-        await update.message.reply_text("Por favor, envie um arquivo PDF ou uma imagem.")
+    api = CacheServiceApi()
+    dto = await api.retrieveDataByUserId(user_id)
+    
+    if dto != None:
+        # processa arquivo
+        if update.message.document:
+            file = update.message.document
+            await enviar_para_canal_privado(update,context, file)
+        elif update.message.photo:
+            photo = update.message.photo[-1]
+            await enviar_para_canal_privado(update,context, photo)  
+        else:
+            await update.message.reply_text("Por favor, envie um arquivo PDF ou uma imagem.")
 
-    # reset estado
-    user_state.awaiting_comprovante[user_id] = False
+        # reset estado
+        dto.awaitingComprovante = 0
+        await api.updateData(dto=dto)
     
 
 async def enviar_para_canal_privado(update: Update, context: ContextTypes.DEFAULT_TYPE, file):

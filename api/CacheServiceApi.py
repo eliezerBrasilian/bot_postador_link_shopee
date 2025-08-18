@@ -9,6 +9,7 @@ class DataHashDto:
     awaitingTituloProduto: int
     awaitingLink: int
     awaitingComprovante: int
+    awaitingCanalTelegram: int
 
 class CacheServiceApi:
     def __init__(self, base_url = "http://cache-service-api:7012/cache-redis/api"):
@@ -28,14 +29,25 @@ class CacheServiceApi:
             return False    
         
         
-    async def retrieveDataByUserId(self, user_id_telegram: str) -> DataHashDto | None:
+    async def retrieveDataByUserId(self, user_id_telegram: int) -> DataHashDto | None:
         url = f"{self.base_url}/id/{user_id_telegram}"
 
         try:
             response = requests.get(url, timeout=5)
 
             if response.status_code == 404:
-                return None
+                #creating data if not exist
+                dto = DataHashDto(
+                        idUserTelegram=f"{user_id_telegram}",
+                        tituloProduto="",
+                        linkProduto="",
+                        awaitingTituloProduto=0,
+                        awaitingLink=0,
+                        awaitingComprovante=0,
+                        awaitingCanalTelegram=0
+                    )
+                                    
+                await self.updateData(dto)
 
             response.raise_for_status()
             data = response.json()
@@ -49,7 +61,8 @@ class CacheServiceApi:
                 linkProduto=data.get("linkProduto"),
                 awaitingTituloProduto=data.get("awaitingTituloProduto", 0),
                 awaitingLink=data.get("awaitingLink", 0),
-                awaitingComprovante=data.get("awaitingComprovante", 0)
+                awaitingComprovante=data.get("awaitingComprovante", 0),
+                awaitingCanalTelegram=data.get("awaitingCanalTelegram", 0),
             )
         except requests.RequestException as e:
             print(f"Erro ao consultar API: {e}")
